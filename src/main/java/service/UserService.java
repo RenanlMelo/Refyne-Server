@@ -1,9 +1,10 @@
 package com.renan.refyne.service;
 
 import com.renan.refyne.entity.User;
+import com.renan.refyne.exception.EmailAlreadyExistsException;
 import com.renan.refyne.repository.UserRepository;
-import com.renan.refyne.dto.UserRequestDTO;
-import com.renan.refyne.dto.UserResponseDTO;
+import dto.User.UserRequestDTO;
+import dto.User.UserResponseDTO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ public class UserService {
 
   public UserResponseDTO createUser(UserRequestDTO dto) {
     if (userRepository.existsByEmail(dto.getEmail())) {
-      throw new RuntimeException("Email already in use");
+      throw new EmailAlreadyExistsException();
     }
 
     User user = new User();
