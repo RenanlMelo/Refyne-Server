@@ -1,4 +1,4 @@
-package com.renan.refyne.dto;
+package dto.User;
 
 import com.renan.refyne.enums.UserType;
 import lombok.Builder;

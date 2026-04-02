@@ -1,8 +1,11 @@
 package com.renan.refyne.controller;
 
-import com.renan.refyne.dto.UserRequestDTO;
-import com.renan.refyne.dto.UserResponseDTO;
+import dto.User.UserRequestDTO;
+import dto.User.UserResponseDTO;
 import com.renan.refyne.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,8 +19,9 @@ public class UserController {
   }
 
   @PostMapping("/create")
-  public UserResponseDTO createUser(@RequestBody UserRequestDTO dto) {
-    return userService.createUser(dto);
+  public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
+    UserResponseDTO user = userService.createUser(dto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
 
   @GetMapping("/{email}")
