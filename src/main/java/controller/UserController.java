@@ -1,31 +1,27 @@
 package com.renan.refyne.controller;
 
-import com.renan.refyne.entity.User;
-import com.renan.refyne.enums.UserType;
+import com.renan.refyne.dto.UserRequestDTO;
+import com.renan.refyne.dto.UserResponseDTO;
 import com.renan.refyne.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class UserController {
 
-  private final UserService service;
+  private final UserService userService;
 
-  public UserController(UserService service) {
-    this.service = service;
+  public UserController(UserService userService) {
+    this.userService = userService;
   }
 
-  @PostMapping("/{create-user}")
-  public User createUser(@RequestBody User request) {
-    return service.createUser(
-      request.getEmail(),
-      request.getPasswordHash(),
-      request.getUserType()
-    );
+  @PostMapping("/create")
+  public UserResponseDTO createUser(@RequestBody UserRequestDTO dto) {
+    return userService.createUser(dto);
   }
 
   @GetMapping("/{email}")
-  public User getUser(@PathVariable String email) {
-    return service.getUser(email);
+  public UserResponseDTO getUser(@PathVariable String email) {
+    return userService.getUser(email);
   }
 }
