@@ -3,7 +3,7 @@ package com.renan.refyne.service;
 import com.renan.refyne.CandidateRepository;
 import com.renan.refyne.entity.Candidate;
 import com.renan.refyne.entity.User;
-import com.renan.refyne.enums.UserType;
+import com.renan.refyne.exception.auth.UserAlreadyInUseException;
 import dto.Candidate.CandidateRequestDTO;
 import dto.Candidate.CandidateResponseDTO;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class CandidateService {
 
   public CandidateResponseDTO createCandidateProfile(CandidateRequestDTO dto, User user) {
     if (candidateRepository.existsByCpf(dto.getCpf())) {
-      throw new IllegalArgumentException("CPF already registered");
+      throw new UserAlreadyInUseException("CPF");
     }
 
     Candidate candidate = new Candidate();

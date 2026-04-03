@@ -1,9 +1,9 @@
 package com.renan.refyne.service;
 
+import com.renan.refyne.exception.auth.UserAlreadyInUseException;
 import com.renan.refyne.repository.StartupRepository;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
-import dto.Candidate.CandidateResponseDTO;
 import org.springframework.stereotype.Service;
 import dto.Startup.StartupRequestDTO;
 import dto.Startup.StartupResponseDTO;
@@ -36,7 +36,7 @@ public class StartupService {
 
   public StartupResponseDTO createStartupProfile(StartupRequestDTO dto, User user) {
     if (startupRepository.existsByCnpj(dto.getCnpj())) {
-      throw new RuntimeException("Startup profile already exists for this user");
+      throw new UserAlreadyInUseException("CNPJ");
     }
 
     Startup startup = new Startup();

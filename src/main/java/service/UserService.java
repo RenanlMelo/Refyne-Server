@@ -1,7 +1,8 @@
 package com.renan.refyne.service;
 
 import com.renan.refyne.entity.User;
-import com.renan.refyne.exception.EmailAlreadyExistsException;
+import com.renan.refyne.exception.auth.UserAlreadyInUseException;
+import com.renan.refyne.exception.user.UserNotFoundException;
 import com.renan.refyne.repository.UserRepository;
 import dto.User.UserRequestDTO;
 import dto.User.UserResponseDTO;
@@ -21,7 +22,7 @@ public class UserService {
 
   public UserResponseDTO createUser(UserRequestDTO dto) {
     if (userRepository.existsByEmail(dto.getEmail())) {
-      throw new EmailAlreadyExistsException();
+      throw new UserAlreadyInUseException("Email");
     }
 
     User user = new User();
@@ -36,7 +37,7 @@ public class UserService {
 
   public UserResponseDTO getUser(String email) {
     User user = userRepository.findByEmail(email)
-      .orElseThrow(() -> new RuntimeException("User not found"));
+      .orElseThrow(() -> new UserNotFoundException());
 
     return toDTO(user);
   }
