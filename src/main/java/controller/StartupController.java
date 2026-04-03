@@ -7,12 +7,13 @@ import dto.Startup.StartupResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/startup")
+@RequestMapping("/api/startups")
 public class StartupController {
 
   private final StartupService startupService;
@@ -21,13 +22,12 @@ public class StartupController {
     this.startupService = startupService;
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public ResponseEntity<StartupResponseDTO> createCandidate(
     @Valid @RequestBody StartupRequestDTO dto,
-    @RequestParam Long userId
+    Authentication authentication
   ) {
-    User user = new User();
-    user.setUserId(userId);
+    User user = (User) authentication.getPrincipal();
 
     StartupResponseDTO response = startupService.createStartupProfile(dto, user);
     return new ResponseEntity<>(response, HttpStatus.CREATED);

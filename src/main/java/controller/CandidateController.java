@@ -7,6 +7,7 @@ import dto.Candidate.CandidateResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,13 +22,12 @@ public class CandidateController {
     this.candidateService = candidateService;
   }
 
-  @PostMapping
+  @PostMapping("/create")
   public ResponseEntity<CandidateResponseDTO> createCandidate(
     @Valid @RequestBody CandidateRequestDTO dto,
-    @RequestParam Long userId
+    Authentication authentication
   ) {
-    User user = new User();
-    user.setUserId(userId);
+    User user = (User) authentication.getPrincipal();
 
     CandidateResponseDTO response = candidateService.createCandidateProfile(dto, user);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
