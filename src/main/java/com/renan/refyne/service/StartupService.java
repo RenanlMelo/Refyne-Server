@@ -1,0 +1,100 @@
+package com.renan.refyne.service;
+
+import com.renan.refyne.repository.CandidateRepository;
+import com.renan.refyne.exception.auth.UserAlreadyInUseException;
+import com.renan.refyne.repository.StartupRepository;
+import com.renan.refyne.entity.Startup;
+import com.renan.refyne.entity.User;
+import org.springframework.stereotype.Service;
+import com.renan.refyne.dto.Startup.StartupRequestDTO;
+import com.renan.refyne.dto.Startup.StartupResponseDTO;
+import com.renan.refyne.enums.UserType;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class StartupService {
+
+  private final StartupRepository startupRepository;
+  private final CandidateRepository candidateRepository;
+
+  public StartupService(
+    StartupRepository startupRepository,
+    CandidateRepository candidateRepository
+  ) {
+    this.startupRepository = startupRepository;
+    this.candidateRepository = candidateRepository;
+  }
+
+  public StartupResponseDTO getStartupByCnpj(String cnpj) {
+    Startup startup = startupRepository.findByCnpj(cnpj)
+      .orElseThrow(() -> new RuntimeException("Startup not found for CNPJ: " + cnpj));
+
+    return toDTO(startup);
+  }
+
+  public List<StartupResponseDTO> getAllStartups() {
+    return startupRepository.findAll()
+      .stream()
+      .map(this::toDTO)
+      .collect(Collectors.toList());
+  }
+
+  public StartupResponseDTO createStartupProfile(StartupRequestDTO dto, User user) {
+
+    if (startupRepository.existsByCnpj(dto.getCnpj())) {
+      throw new UserAlreadyInUseException("CNPJ");
+    }
+
+    if (startupRepository.existsByUser(user)) {
+      throw new UserAlreadyInUseException("User already has a startup profile");
+    }
+
+    if (candidateRepository.existsByUser(user)) {
+      throw new UserAlreadyInUseException("User already has a candidate profile");
+    }
+
+    if (user.getUserType() != UserType.STARTUP) {
+      throw new RuntimeException("User is not a startup");
+    }
+
+    Startup startup = new Startup();
+    startup.setUser(user);
+    startup.setCompanyName(dto.getCompanyName());
+    startup.setDescription(dto.getDescription());
+    startup.setIndustry(dto.getIndustry());
+    startup.setStage(dto.getStage());
+    startup.setFoundedDate(dto.getFoundedDate());
+    startup.setSize(dto.getSize());
+    startup.setLogoUrl(dto.getLogoUrl());
+    startup.setWebsiteUrl(dto.getWebsiteUrl());
+    startup.setLinkedinUrl(dto.getLinkedinUrl());
+    startup.setCity(dto.getCity());
+    startup.setState(dto.getState());
+    startup.setCountry(dto.getCountry());
+    startup.setCnpj(dto.getCnpj());
+
+    Startup saved = startupRepository.save(startup);
+
+    return toDTO(saved);
+  }
+
+  private StartupResponseDTO toDTO(Startup startup) {
+    return StartupResponseDTO.builder()
+      .companyName(startup.getCompanyName())
+      .description(startup.getDescription())
+      .industry(startup.getIndustry())
+      .stage(startup.getStage())
+      .foundedDate(startup.getFoundedDate())
+      .size(startup.getSize())
+      .logoUrl(startup.getLogoUrl())
+      .websiteUrl(startup.getWebsiteUrl())
+      .linkedinUrl(startup.getLinkedinUrl())
+      .city(startup.getCity())
+      .state(startup.getState())
+      .country(startup.getCountry())
+      .cnpj(startup.getCnpj())
+      .build();
+  }
+}
