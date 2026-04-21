@@ -6,8 +6,8 @@ import com.renan.refyne.repository.StartupRepository;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import org.springframework.stereotype.Service;
-import com.renan.refyne.dto.Startup.StartupRequestDTO;
-import com.renan.refyne.dto.Startup.StartupResponseDTO;
+import com.renan.refyne.dto.startup.StartupRequestDTO;
+import com.renan.refyne.dto.startup.StartupResponseDTO;
 import com.renan.refyne.enums.UserType;
 
 import java.util.List;
@@ -27,9 +27,9 @@ public class StartupService {
     this.candidateRepository = candidateRepository;
   }
 
-  public StartupResponseDTO getStartupByCnpj(String cnpj) {
-    Startup startup = startupRepository.findByCnpj(cnpj)
-      .orElseThrow(() -> new RuntimeException("Startup not found for CNPJ: " + cnpj));
+  public StartupResponseDTO getStartupById(Long id) {
+    Startup startup = startupRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("Startup not found"));
 
     return toDTO(startup);
   }
@@ -76,6 +76,8 @@ public class StartupService {
     startup.setCnpj(dto.getCnpj());
 
     Startup saved = startupRepository.save(startup);
+
+    user.setProfileCompleted(true);
 
     return toDTO(saved);
   }

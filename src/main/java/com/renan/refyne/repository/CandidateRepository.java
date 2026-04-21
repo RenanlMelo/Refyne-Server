@@ -11,8 +11,6 @@ public interface CandidateRepository extends JpaRepository<Candidate, Long> {
 
   boolean existsByUser(User user);
 
-  Optional<Candidate> findByCpf(String cpf);
-
-  Optional<Candidate> findByUser(User user);
+  Optional<Candidate> findById(Long id);
 }
 

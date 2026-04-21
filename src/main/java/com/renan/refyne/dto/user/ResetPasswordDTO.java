@@ -1,4 +1,4 @@
-package com.renan.refyne.dto.User;
+package com.renan.refyne.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

@@ -33,6 +33,9 @@ public class User implements UserDetails {
   @Column(name = "user_type", nullable = false)
   private UserType userType;
 
+  @Column(name = "profile_completed", nullable = false)
+  private boolean profileCompleted = false;
+
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 

@@ -1,4 +1,4 @@
-package com.renan.refyne.dto.Startup;
+package com.renan.refyne.dto.startup;
 
 import lombok.Builder;
 import lombok.Value;

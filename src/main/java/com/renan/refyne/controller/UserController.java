@@ -1,16 +1,15 @@
 package com.renan.refyne.controller;
 
-import com.renan.refyne.dto.User.ForgotPasswordDTO;
-import com.renan.refyne.dto.User.ResetPasswordDTO;
-import com.renan.refyne.dto.User.UserRequestDTO;
-import com.renan.refyne.dto.User.UserResponseDTO;
+import com.renan.refyne.dto.user.ForgotPasswordDTO;
+import com.renan.refyne.dto.user.ResetPasswordDTO;
+import com.renan.refyne.dto.user.UserRequestDTO;
+import com.renan.refyne.dto.user.UserResponseDTO;
 import com.renan.refyne.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.renan.refyne.service.JwtService;
-import com.renan.refyne.entity.User;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,29 +26,18 @@ public class UserController {
 
   @PostMapping("/create")
   public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
-    UserResponseDTO user = userService.createUser(dto);
-    return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    UserResponseDTO response = userService.createUser(dto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PostMapping("/login")
   public ResponseEntity<UserResponseDTO> authenticateUser(@RequestBody UserRequestDTO dto) {
-
-    User user = userService.authenticateUser(dto);
-
-    String jwtToken = jwtService.generateToken(user);
-
-    UserResponseDTO response = UserResponseDTO.builder()
-      .email(user.getEmail())
-      .userType(user.getUserType())
-      .token(jwtToken)
-      .expiresIn(jwtService.getExpirationTime())
-      .build();
-
+    UserResponseDTO response = userService.authenticateUser(dto);
     return ResponseEntity.ok(response);
   }
 
   @PostMapping("/forgot-password")
-  public void forgotPassword(@RequestBody ForgotPasswordDTO dto) {userService.forgotPassword(dto.getEmail());
+  public void forgotPassword(@RequestBody ForgotPasswordDTO dto) {userService.forgotPassword(dto.getEmail(), dto.getUserType());
   }
 
   @PostMapping("/reset-password")

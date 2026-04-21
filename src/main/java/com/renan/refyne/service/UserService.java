@@ -2,15 +2,19 @@ package com.renan.refyne.service;
 
 import com.renan.refyne.entity.PasswordResetToken;
 import com.renan.refyne.entity.User;
+import com.renan.refyne.enums.UserType;
 import com.renan.refyne.exception.auth.UserAlreadyInUseException;
 import com.renan.refyne.repository.PasswordResetTokenRepository;
 import com.renan.refyne.repository.UserRepository;
-import com.renan.refyne.dto.User.UserRequestDTO;
-import com.renan.refyne.dto.User.UserResponseDTO;
+import com.renan.refyne.dto.user.UserRequestDTO;
+import com.renan.refyne.dto.user.UserResponseDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.renan.refyne.service.JwtService;
 import com.renan.refyne.security.RateLimitService;
 
 import java.time.LocalDateTime;
@@ -27,8 +31,9 @@ public class UserService {
   private final LoginAttemptService loginAttemptService;
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final EmailService emailService;
+  private final JwtService jwtService;
 
-  public UserService(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, RateLimitService rateLimitService, LoginAttemptService loginAttemptService, PasswordResetTokenRepository passwordResetTokenRepository, EmailService emailService) {
+  public UserService(UserRepository userRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, RateLimitService rateLimitService, LoginAttemptService loginAttemptService, PasswordResetTokenRepository passwordResetTokenRepository, EmailService emailService, JwtService jwtService) {
     this.userRepository = userRepository;
     this.authenticationManager = authenticationManager;
     this.passwordEncoder = passwordEncoder;
@@ -36,10 +41,11 @@ public class UserService {
     this.loginAttemptService = loginAttemptService;
     this.passwordResetTokenRepository = passwordResetTokenRepository;
     this.emailService = emailService;
+    this.jwtService = jwtService;
   }
 
   public UserResponseDTO createUser(UserRequestDTO dto) {
-    if (userRepository.existsByEmail(dto.getEmail())) {
+    if (userRepository.existsByEmailAndUserType(dto.getEmail(), dto.getUserType())) {
       throw new UserAlreadyInUseException("Email");
     }
 
@@ -50,15 +56,19 @@ public class UserService {
 
     User savedUser = userRepository.save(user);
 
-    return toDTO(savedUser);
+    return buildAuthResponse(savedUser);
   }
 
-  public User authenticateUser(UserRequestDTO dto) {
+  public UserResponseDTO authenticateUser(UserRequestDTO dto) {
     if (!rateLimitService.tryConsume(dto.getEmail())) {
       throw new RuntimeException("Too many requests. Try again later.");
     }
 
     try {
+
+      User user = userRepository.findByEmailAndUserType(dto.getEmail(), dto.getUserType())
+        .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
       authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
           dto.getEmail(),
@@ -68,8 +78,7 @@ public class UserService {
 
       loginAttemptService.loginSucceeded(dto.getEmail());
 
-      return userRepository.findByEmail(dto.getEmail())
-        .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+      return buildAuthResponse(user);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -78,9 +87,9 @@ public class UserService {
     }
   }
 
-  public void forgotPassword(String email) {
+  public void forgotPassword(String email, UserType userType) {
 
-    Optional<User> userOpt = userRepository.findByEmail(email);
+    Optional<User> userOpt = userRepository.findByEmailAndUserType(email, userType);
 
     if (userOpt.isEmpty()) return;
 
@@ -116,10 +125,15 @@ public class UserService {
     passwordResetTokenRepository.delete(resetToken);
   }
 
-  private UserResponseDTO toDTO(User user) {
+  private UserResponseDTO buildAuthResponse(User user) {
+    String jwtToken = jwtService.generateToken(user);
+
     return UserResponseDTO.builder()
       .email(user.getEmail())
       .userType(user.getUserType())
+      .token(jwtToken)
+      .expiresIn(jwtService.getExpirationTime())
+      .profileCompleted(user.isProfileCompleted())
       .build();
   }
 }

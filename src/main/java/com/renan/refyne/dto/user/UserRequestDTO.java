@@ -1,4 +1,4 @@
-package com.renan.refyne.dto.User;
+package com.renan.refyne.dto.user;
 
 import com.renan.refyne.enums.UserType;
 import jakarta.validation.constraints.*;
