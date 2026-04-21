@@ -2,8 +2,8 @@ package com.renan.refyne.controller;
 
 import com.renan.refyne.entity.User;
 import com.renan.refyne.service.CandidateService;
-import com.renan.refyne.dto.Candidate.CandidateRequestDTO;
-import com.renan.refyne.dto.Candidate.CandidateResponseDTO;
+import com.renan.refyne.dto.candidate.CandidateRequestDTO;
+import com.renan.refyne.dto.candidate.CandidateResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,13 +29,13 @@ public class CandidateController {
   ) {
     User user = (User) authentication.getPrincipal();
 
-    CandidateResponseDTO response = candidateService.createCandidateProfile(dto, user);
+    CandidateResponseDTO response = candidateService.createCandidateProfile(dto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @GetMapping("/{cpf}")
-  public ResponseEntity<CandidateResponseDTO> getCandidateByCpf(@PathVariable String cpf) {
-    CandidateResponseDTO response = candidateService.getCandidateByCpf(cpf);
+  @GetMapping("/{id}")
+  public ResponseEntity<CandidateResponseDTO> getCandidateById(@PathVariable Long id) {
+    CandidateResponseDTO response = candidateService.getCandidateById(id);
     return ResponseEntity.ok(response);
   }
 

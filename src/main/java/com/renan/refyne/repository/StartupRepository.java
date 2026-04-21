@@ -8,10 +8,7 @@ import java.util.Optional;
 public interface StartupRepository extends JpaRepository<Startup, Long> {
 
   boolean existsByCnpj(String cnpj);
-
   boolean existsByUser(User user);
-
-  Optional<Startup> findByCnpj(String cnpj);
-
+  Optional<Startup> findById(Long id);
   Optional<Startup> findByUser(User user);
 }

@@ -1,4 +1,4 @@
-package com.renan.refyne.dto.User;
+package com.renan.refyne.dto.user;
 
 import com.renan.refyne.enums.UserType;
 import lombok.Builder;
@@ -11,7 +11,7 @@ public class UserResponseDTO {
   Long id;
   String email;
   UserType userType;
-
+  Boolean profileCompleted;
   String token;
   Long expiresIn;
 }

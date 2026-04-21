@@ -2,8 +2,8 @@ package com.renan.refyne.controller;
 
 import com.renan.refyne.entity.User;
 import com.renan.refyne.service.StartupService;
-import com.renan.refyne.dto.Startup.StartupRequestDTO;
-import com.renan.refyne.dto.Startup.StartupResponseDTO;
+import com.renan.refyne.dto.startup.StartupRequestDTO;
+import com.renan.refyne.dto.startup.StartupResponseDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +33,9 @@ public class StartupController {
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @GetMapping("/{cnpj}")
-  public ResponseEntity<StartupResponseDTO> getCandidateByCpf(@PathVariable String cnpj) {
-    StartupResponseDTO response = startupService.getStartupByCnpj(cnpj);
+  @GetMapping("/{id}")
+  public ResponseEntity<StartupResponseDTO> getCandidateByCpf(@PathVariable Long id) {
+    StartupResponseDTO response = startupService.getStartupById(id);
     return ResponseEntity.ok(response);
   }
 

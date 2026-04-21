@@ -4,10 +4,14 @@ import com.renan.refyne.repository.CandidateRepository;
 import com.renan.refyne.entity.Candidate;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.exception.auth.UserAlreadyInUseException;
-import com.renan.refyne.dto.Candidate.CandidateRequestDTO;
-import com.renan.refyne.dto.Candidate.CandidateResponseDTO;
+import com.renan.refyne.dto.candidate.CandidateRequestDTO;
+import com.renan.refyne.dto.candidate.CandidateResponseDTO;
+import com.renan.refyne.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.renan.refyne.enums.UserType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,13 +20,15 @@ import java.util.stream.Collectors;
 public class CandidateService {
 
   private final CandidateRepository candidateRepository;
+  private final UserRepository userRepository;
 
-  public CandidateService(CandidateRepository candidateRepository) {
+  public CandidateService(CandidateRepository candidateRepository, UserRepository userRepository) {
     this.candidateRepository = candidateRepository;
+    this.userRepository = userRepository;
   }
 
-  public CandidateResponseDTO getCandidateByCpf(String cpf) {
-    Candidate candidate = candidateRepository.findByCpf(cpf)
+  public CandidateResponseDTO getCandidateById(Long id) {
+    Candidate candidate = candidateRepository.findById(id)
       .orElseThrow(() -> new RuntimeException("Candidate not found"));
 
     return toDTO(candidate);
@@ -35,7 +41,14 @@ public class CandidateService {
       .collect(Collectors.toList());
   }
 
-  public CandidateResponseDTO createCandidateProfile(CandidateRequestDTO dto, User user) {
+  @Transactional
+  public CandidateResponseDTO createCandidateProfile(CandidateRequestDTO dto) {
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    User authUser  = (User) authentication.getPrincipal();
+
+    User user = userRepository.findByUserId(authUser.getUserId())
+      .orElseThrow(() -> new RuntimeException("User not found"));
 
     if (candidateRepository.existsByCpf(dto.getCpf())) {
       throw new UserAlreadyInUseException("CPF");
@@ -66,6 +79,8 @@ public class CandidateService {
     candidate.setCpf(dto.getCpf());
 
     Candidate saved = candidateRepository.save(candidate);
+
+    user.setProfileCompleted(true);
 
     return toDTO(saved);
   }

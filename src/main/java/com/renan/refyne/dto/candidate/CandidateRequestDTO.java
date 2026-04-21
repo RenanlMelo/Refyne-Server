@@ -1,4 +1,4 @@
-package com.renan.refyne.dto.Candidate;
+package com.renan.refyne.dto.candidate;
 
 import jakarta.validation.constraints.NotBlank;
 import com.renan.refyne.enums.AvailabilityStatus;
