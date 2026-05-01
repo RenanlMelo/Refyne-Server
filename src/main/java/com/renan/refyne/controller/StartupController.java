@@ -1,5 +1,6 @@
 package com.renan.refyne.controller;
 
+import com.renan.refyne.dto.user.ProfileCompletionResponseDTO;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.service.StartupService;
 import com.renan.refyne.dto.startup.StartupRequestDTO;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,14 +25,13 @@ public class StartupController {
   }
 
   @PostMapping("/create")
-  public ResponseEntity<StartupResponseDTO> createCandidate(
+  public ResponseEntity<ProfileCompletionResponseDTO> createCandidate(
     @Valid @RequestBody StartupRequestDTO dto,
-    Authentication authentication
+    @AuthenticationPrincipal User user
   ) {
-    User user = (User) authentication.getPrincipal();
+    ProfileCompletionResponseDTO response = startupService.createStartupProfile(dto, user);
 
-    StartupResponseDTO response = startupService.createStartupProfile(dto, user);
-    return new ResponseEntity<>(response, HttpStatus.CREATED);
+    return ResponseEntity.status(201).body(response);
   }
 
   @GetMapping("/{id}")

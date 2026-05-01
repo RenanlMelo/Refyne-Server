@@ -1,5 +1,6 @@
 package com.renan.refyne.service;
 
+import com.renan.refyne.dto.user.AuthResponseDTO;
 import com.renan.refyne.entity.PasswordResetToken;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.UserType;
@@ -44,7 +45,14 @@ public class UserService {
     this.jwtService = jwtService;
   }
 
-  public UserResponseDTO createUser(UserRequestDTO dto) {
+  public UserResponseDTO getCurrentUser(Long userId) {
+    User user = userRepository.findById(userId)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    return toDTO(user);
+  }
+
+  public AuthResponseDTO createUser(UserRequestDTO dto) {
     if (userRepository.existsByEmailAndUserType(dto.getEmail(), dto.getUserType())) {
       throw new UserAlreadyInUseException("Email");
     }
@@ -59,15 +67,16 @@ public class UserService {
     return buildAuthResponse(savedUser);
   }
 
-  public UserResponseDTO authenticateUser(UserRequestDTO dto) {
+  public AuthResponseDTO authenticateUser(UserRequestDTO dto) {
     if (!rateLimitService.tryConsume(dto.getEmail())) {
       throw new RuntimeException("Too many requests. Try again later.");
     }
 
     try {
-
-      User user = userRepository.findByEmailAndUserType(dto.getEmail(), dto.getUserType())
-        .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+      User user = userRepository.findByEmailAndUserType(
+        dto.getEmail(),
+        dto.getUserType()
+      ).orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
       authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(
@@ -81,7 +90,6 @@ public class UserService {
       return buildAuthResponse(user);
 
     } catch (Exception e) {
-      e.printStackTrace();
       loginAttemptService.loginFailed(dto.getEmail());
       throw new RuntimeException("Invalid credentials");
     }
@@ -125,14 +133,22 @@ public class UserService {
     passwordResetTokenRepository.delete(resetToken);
   }
 
-  private UserResponseDTO buildAuthResponse(User user) {
+  private AuthResponseDTO buildAuthResponse(User user) {
     String jwtToken = jwtService.generateToken(user);
 
-    return UserResponseDTO.builder()
+    return AuthResponseDTO.builder()
       .email(user.getEmail())
       .userType(user.getUserType())
+      .profileCompleted(user.isProfileCompleted())
       .token(jwtToken)
-      .expiresIn(jwtService.getExpirationTime())
+      .build();
+  }
+
+  private UserResponseDTO toDTO(User user) {
+    return UserResponseDTO.builder()
+      .id(user.getUserId())
+      .email(user.getEmail())
+      .userType(user.getUserType())
       .profileCompleted(user.isProfileCompleted())
       .build();
   }

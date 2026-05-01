@@ -1,6 +1,7 @@
 package com.renan.refyne.service;
 
 import com.renan.refyne.dto.skill.SkillResponseDTO;
+import com.renan.refyne.entity.Skill;
 import com.renan.refyne.repository.SkillRepository;
 import com.renan.refyne.util.SkillMapper;
 import com.renan.refyne.util.SkillNormalizer;
@@ -27,8 +28,9 @@ public class SkillService {
 
   public List<SkillResponseDTO> searchSkills(String input) {
     String normalized = SkillNormalizer.normalize(input);
+    String term = "%" + normalized + "%";
 
-    return skillRepository.searchSkills(normalized)
+    return skillRepository.searchSkills(term)
       .stream()
       .map(SkillMapper::toDTO)
       .toList();

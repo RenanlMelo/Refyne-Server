@@ -6,9 +6,9 @@ import lombok.Value;
 
 @Value
 @Builder
-public class UserResponseDTO {
-  Long id;
+public class AuthResponseDTO {
   String email;
   UserType userType;
   Boolean profileCompleted;
+  String token;
 }

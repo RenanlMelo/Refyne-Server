@@ -1,14 +1,17 @@
 package com.renan.refyne.service;
 
+import com.renan.refyne.dto.user.ProfileCompletionResponseDTO;
 import com.renan.refyne.repository.CandidateRepository;
 import com.renan.refyne.exception.auth.UserAlreadyInUseException;
 import com.renan.refyne.repository.StartupRepository;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
+import com.renan.refyne.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import com.renan.refyne.dto.startup.StartupRequestDTO;
 import com.renan.refyne.dto.startup.StartupResponseDTO;
 import com.renan.refyne.enums.UserType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,11 +21,14 @@ public class StartupService {
 
   private final StartupRepository startupRepository;
   private final CandidateRepository candidateRepository;
+  private final UserRepository userRepository;
 
   public StartupService(
+    UserRepository userRepository,
     StartupRepository startupRepository,
     CandidateRepository candidateRepository
   ) {
+    this.userRepository = userRepository;
     this.startupRepository = startupRepository;
     this.candidateRepository = candidateRepository;
   }
@@ -41,7 +47,11 @@ public class StartupService {
       .collect(Collectors.toList());
   }
 
-  public StartupResponseDTO createStartupProfile(StartupRequestDTO dto, User user) {
+  @Transactional
+  public ProfileCompletionResponseDTO createStartupProfile(StartupRequestDTO dto, User user) {
+
+    User managedUser = userRepository.findById(user.getUserId())
+      .orElseThrow(() -> new RuntimeException("User not found"));
 
     if (startupRepository.existsByCnpj(dto.getCnpj())) {
       throw new UserAlreadyInUseException("CNPJ");
@@ -60,7 +70,7 @@ public class StartupService {
     }
 
     Startup startup = new Startup();
-    startup.setUser(user);
+    startup.setUser(managedUser);
     startup.setCompanyName(dto.getCompanyName());
     startup.setDescription(dto.getDescription());
     startup.setIndustry(dto.getIndustry());
@@ -75,11 +85,11 @@ public class StartupService {
     startup.setCountry(dto.getCountry());
     startup.setCnpj(dto.getCnpj());
 
-    Startup saved = startupRepository.save(startup);
+    startupRepository.save(startup);
 
-    user.setProfileCompleted(true);
+    managedUser.setProfileCompleted(true);
 
-    return toDTO(saved);
+    return new ProfileCompletionResponseDTO(true);
   }
 
   private StartupResponseDTO toDTO(Startup startup) {

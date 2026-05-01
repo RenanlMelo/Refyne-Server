@@ -9,16 +9,28 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "JOB_POSTING")
+@Table(
+  name = "JOB_POSTING",
+  indexes = {
+    @Index(name = "idx_job_posting_public_id", columnList = "public_id")
+  },
+  uniqueConstraints = {
+    @UniqueConstraint(columnNames = "public_id")
+  })
 public class JobPosting {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long jobPostingId;
+
+  @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
+  private String publicId;
 
   @ManyToOne
   @JoinColumn(name = "startup_id", nullable = false)
@@ -32,6 +44,14 @@ public class JobPosting {
 
   @Column(columnDefinition = "TEXT")
   private String requirements;
+
+  @ManyToMany
+  @JoinTable(
+    name = "job_posting_skills",
+    joinColumns = @JoinColumn(name = "job_posting_id"),
+    inverseJoinColumns = @JoinColumn(name = "skill_id")
+  )
+  private List<Skill> skills;
 
   @Enumerated(EnumType.STRING)
   private EmploymentType employmentType;
@@ -62,6 +82,12 @@ public class JobPosting {
 
   @PrePersist
   public void prePersist() {
-    createdAt = LocalDateTime.now();
+    if (this.publicId == null) {
+      this.publicId = UUID.randomUUID().toString();
+    }
+
+    if (this.createdAt == null) {
+      this.createdAt = LocalDateTime.now();
+    }
   }
 }

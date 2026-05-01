@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class SkillSeeder {
@@ -33,7 +34,6 @@ public class SkillSeeder {
       for (SkillSeed seed : wrapper.getSkills()) {
 
         Skill skill = new Skill();
-        skill.setId(seed.getId());
         skill.setNomeExibicao(seed.getNomeExibicao());
         skill.setNomeNormalizado(seed.getNomeNormalizado());
         skill.setCategoria(seed.getCategoria());
@@ -51,10 +51,10 @@ public class SkillSeeder {
 
         skill.setSynonyms(synonymsList);
 
-        repository.save(skill);
-      }
+        List<Skill> skills = new ArrayList<>();
 
-      System.out.println("✅ Skills carregadas com sucesso!");
+        repository.saveAll(skills);
+      }
     };
   }
 }

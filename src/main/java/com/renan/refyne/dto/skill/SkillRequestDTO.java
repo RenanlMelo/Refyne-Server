@@ -8,8 +8,7 @@ import java.util.List;
 @Data
 public class SkillRequestDTO {
 
-  @NotBlank
-  private String id;
+  private Long id; // optional (remove if create only)
 
   @NotBlank
   private String nomeExibicao;

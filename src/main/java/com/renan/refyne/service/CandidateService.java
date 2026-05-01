@@ -81,6 +81,7 @@ public class CandidateService {
     Candidate saved = candidateRepository.save(candidate);
 
     user.setProfileCompleted(true);
+    userRepository.save(user);
 
     return toDTO(saved);
   }

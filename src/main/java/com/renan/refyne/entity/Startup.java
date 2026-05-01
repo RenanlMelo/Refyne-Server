@@ -2,6 +2,7 @@ package com.renan.refyne.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,11 +13,13 @@ import lombok.Setter;
 @Table(
   name = "STARTUP",
   indexes = {
-    @Index(name = "idx_candidate_user", columnList = "user_id")
+    @Index(name = "idx_startup_user", columnList = "user_id"),
+    @Index(name = "idx_startup_public_id", columnList = "public_id")
   },
   uniqueConstraints = {
     @UniqueConstraint(columnNames = "user_id"),
-    @UniqueConstraint(columnNames = "cnpj")
+    @UniqueConstraint(columnNames = "cnpj"),
+    @UniqueConstraint(columnNames = "public_id")
   }
 )
 public class Startup {
@@ -25,6 +28,14 @@ public class Startup {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "startup_id")
   private Long startupId;
+
+  @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
+  private String publicId;
+
+  @PrePersist
+  public void generatePublicId() {
+    this.publicId = UUID.randomUUID().toString();
+  }
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)

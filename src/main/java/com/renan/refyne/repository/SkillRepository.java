@@ -8,18 +8,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface SkillRepository extends JpaRepository<Skill, String> {
+public interface SkillRepository extends JpaRepository<Skill, Long> {
 
   Optional<Skill> findByNomeNormalizado(String nomeNormalizado);
 
-  // Search Skill
   @Query("""
-        SELECT DISTINCT s FROM Skill s
-        LEFT JOIN s.synonyms syn
-        WHERE 
-            LOWER(s.nomeNormalizado) LIKE LOWER(CONCAT('%', :term, '%'))
-            OR LOWER(syn.synonym) LIKE LOWER(CONCAT('%', :term, '%'))
-    """)
+    SELECT DISTINCT s FROM Skill s
+    LEFT JOIN FETCH s.synonyms syn
+    WHERE LOWER(s.nomeNormalizado) LIKE LOWER(:term)
+        OR LOWER(syn.synonym) LIKE LOWER(:term)
+""")
   List<Skill> searchSkills(@Param("term") String term);
 }
-
