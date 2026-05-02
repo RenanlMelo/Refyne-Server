@@ -17,44 +17,62 @@ import java.util.List;
 @Configuration
 public class SkillSeeder {
 
-  @Bean
-  CommandLineRunner loadSkills(SkillRepository repository) {
-    return args -> {
+    @Bean
+    CommandLineRunner loadSkills(SkillRepository repository) {
+        return args -> {
 
-      if (repository.count() > 0) return;
+            try {
+                ObjectMapper mapper = new ObjectMapper();
 
-      ObjectMapper mapper = new ObjectMapper();
+                InputStream input = getClass()
+                        .getResourceAsStream("/data/hard_skills.json");
 
-      InputStream input = getClass()
-        .getResourceAsStream("/data/hard_skills.json");
+                if (input == null) {
+                    return;
+                }
 
-      SkillSeedWrapper wrapper =
-        mapper.readValue(input, SkillSeedWrapper.class);
+                SkillSeedWrapper wrapper =
+                        mapper.readValue(input, SkillSeedWrapper.class);
 
-      for (SkillSeed seed : wrapper.getSkills()) {
+                if (wrapper.getSkills() == null || wrapper.getSkills().isEmpty()) {
+                    return;
+                }
 
-        Skill skill = new Skill();
-        skill.setNomeExibicao(seed.getNomeExibicao());
-        skill.setNomeNormalizado(seed.getNomeNormalizado());
-        skill.setCategoria(seed.getCategoria());
+                int inserted = 0;
+                int skipped = 0;
 
-        var synonymsList = new ArrayList<SkillSynonym>();
+                for (SkillSeed seed : wrapper.getSkills()) {
 
-        if (seed.getSinonimos() != null) {
-          for (String syn : seed.getSinonimos()) {
-            SkillSynonym synonym = new SkillSynonym();
-            synonym.setSynonym(syn);
-            synonym.setSkill(skill);
-            synonymsList.add(synonym);
-          }
-        }
+                    if (repository.existsByNomeNormalizado(seed.getNomeNormalizado())) {
+                        skipped++;
+                        continue;
+                    }
 
-        skill.setSynonyms(synonymsList);
+                    Skill skill = new Skill();
+                    skill.setNomeExibicao(seed.getNomeExibicao());
+                    skill.setNomeNormalizado(seed.getNomeNormalizado());
+                    skill.setCategoria(seed.getCategoria());
 
-        List<Skill> skills = new ArrayList<>();
+                    List<SkillSynonym> synonymsList = new ArrayList<>();
 
-        repository.saveAll(skills);
-      }
-    };
-  }
+                    if (seed.getSinonimos() != null) {
+                        for (String syn : seed.getSinonimos()) {
+                            SkillSynonym synonym = new SkillSynonym();
+                            synonym.setSynonym(syn);
+                            synonym.setSkill(skill);
+                            synonymsList.add(synonym);
+                        }
+                    }
+
+                    skill.setSynonyms(synonymsList);
+
+                    repository.save(skill);
+                    inserted++;
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+    }
 }

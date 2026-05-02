@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SkillRepository extends JpaRepository<Skill, Long> {
+    boolean existsByNomeNormalizado(String nomeNormalizado);
 
-  Optional<Skill> findByNomeNormalizado(String nomeNormalizado);
+    Optional<Skill> findByNomeNormalizado(String nomeNormalizado);
 
   @Query("""
     SELECT DISTINCT s FROM Skill s

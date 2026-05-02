@@ -1,5 +1,6 @@
 package com.renan.refyne.controller;
 
+import com.renan.refyne.dto.jobPosting.JobPostingListDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingRequestDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingResponseDTO;
 import com.renan.refyne.dto.jobPosting.JobSuggestionDTO;
@@ -33,10 +34,10 @@ public class JobPostingController {
   }
   // GET ALL
   @GetMapping
-  public ResponseEntity<List<JobPostingResponseDTO>> getAll() {
-    return ResponseEntity.ok(service.getAll());
-  }
-
+    public ResponseEntity<List<JobPostingListDTO>> getAll() {
+        System.out.println("➡️ Controller hit: /api/jobs");
+        return ResponseEntity.ok(service.getAll());
+    }
   // GET BY ID
   @GetMapping("/{id}")
   public ResponseEntity<JobPostingResponseDTO> getById(@PathVariable Integer id) {
