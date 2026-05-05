@@ -8,7 +8,7 @@ public class JobMapper {
 
   public static JobSuggestionDTO toSuggestionDTO(JobPosting job) {
     return JobSuggestionDTO.builder()
-      .id(job.getJobPostingId())
+      .publicId(job.getPublicId())
       .title(job.getTitle())
       .startupName(job.getStartup().getCompanyName())
       .build();
@@ -16,7 +16,7 @@ public class JobMapper {
 
   public static JobPostingResponseDTO toDTO(JobPosting job) {
     return JobPostingResponseDTO.builder()
-      .jobPostingId(job.getJobPostingId())
+      .jobPostingId(job.getPublicId())
       .title(job.getTitle())
       .description(job.getDescription())
       .startupName(job.getStartup().getCompanyName())

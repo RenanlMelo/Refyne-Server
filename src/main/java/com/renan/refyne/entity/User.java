@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import com.renan.refyne.enums.UserType;
 
@@ -22,6 +23,9 @@ public class User implements UserDetails {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "user_id")
   private Long userId;
+
+  @Column(name = "public_id", nullable = false, updatable = false, unique = true)
+  private UUID publicId;
 
   @Column(nullable = false, unique = true, length = 100)
   private String email;
@@ -44,8 +48,13 @@ public class User implements UserDetails {
 
   @PrePersist
   public void prePersist() {
-    this.createdAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
+    if (this.publicId == null) {
+      this.publicId = UUID.randomUUID();
+    }
+
+    LocalDateTime now = LocalDateTime.now();
+    this.createdAt = now;
+    this.updatedAt = now;
   }
 
   @PreUpdate
@@ -55,35 +64,21 @@ public class User implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of(() -> "ROLE_" + userType.name());
+    return List.of((GrantedAuthority) () -> "ROLE_" + userType.name());
   }
 
+  @Override
   public String getPassword() {
     return passwordHash;
   }
 
+  @Override
   public String getUsername() {
     return email;
   }
 
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return true;
-  }
-
+  @Override public boolean isAccountNonExpired() { return true; }
+  @Override public boolean isAccountNonLocked() { return true; }
+  @Override public boolean isCredentialsNonExpired() { return true; }
+  @Override public boolean isEnabled() { return true; }
 }

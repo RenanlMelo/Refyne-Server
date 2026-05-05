@@ -10,13 +10,14 @@ import lombok.Value;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Value
 @Builder
 public class JobPostingResponseDTO {
 
-  Long jobPostingId;
-  Long startupId;
+  UUID jobPostingId;
+  UUID startupId;
   String startupName;
 
   String title;

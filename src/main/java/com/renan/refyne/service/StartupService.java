@@ -14,6 +14,7 @@ import com.renan.refyne.enums.UserType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,8 +34,8 @@ public class StartupService {
     this.candidateRepository = candidateRepository;
   }
 
-  public StartupResponseDTO getStartupById(Long id) {
-    Startup startup = startupRepository.findById(id)
+  public StartupResponseDTO getStartupByPublicId(UUID publicId) {
+    Startup startup = startupRepository.findByPublicId(publicId)
       .orElseThrow(() -> new RuntimeException("Startup not found"));
 
     return toDTO(startup);

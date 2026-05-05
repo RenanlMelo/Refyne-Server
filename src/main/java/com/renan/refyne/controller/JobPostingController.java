@@ -4,6 +4,7 @@ import com.renan.refyne.dto.jobPosting.JobPostingListDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingRequestDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingResponseDTO;
 import com.renan.refyne.dto.jobPosting.JobSuggestionDTO;
+import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
 import com.renan.refyne.service.JobPostingService;
@@ -13,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -35,29 +37,8 @@ public class JobPostingController {
   // GET ALL
   @GetMapping
     public ResponseEntity<List<JobPostingListDTO>> getAll() {
-        System.out.println("➡️ Controller hit: /api/jobs");
         return ResponseEntity.ok(service.getAll());
     }
-  // GET BY ID
-  @GetMapping("/{id}")
-  public ResponseEntity<JobPostingResponseDTO> getById(@PathVariable Integer id) {
-    return ResponseEntity.ok(service.getById(id));
-  }
-
-  // UPDATE
-  @PutMapping("/{id}")
-  public ResponseEntity<JobPostingResponseDTO> update(
-    @PathVariable Integer id,
-    @RequestBody JobPostingRequestDTO dto) {
-    return ResponseEntity.ok(service.update(id, dto));
-  }
-
-  // DELETE
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> delete(@PathVariable Integer id) {
-    service.delete(id);
-    return ResponseEntity.noContent().build();
-  }
 
   @GetMapping("/my-jobs")
   public ResponseEntity<List<JobPostingResponseDTO>> getMyJobs(
@@ -92,5 +73,12 @@ public class JobPostingController {
     return ResponseEntity.ok(
       service.searchJobs(query, workModel, equityMin, equityMax, page, size)
     );
+  }
+
+  @GetMapping("/{publicId}")
+  public ResponseEntity<JobPostingResponseDTO> getByPublicId(
+    @PathVariable UUID publicId
+  ) {
+    return ResponseEntity.ok(service.getByPublicId(publicId));
   }
 }

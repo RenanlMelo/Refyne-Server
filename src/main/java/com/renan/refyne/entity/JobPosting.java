@@ -29,8 +29,8 @@ public class JobPosting {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long jobPostingId;
 
-  @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
-  private String publicId;
+  @Column(name = "public_id", nullable = false, updatable = false, unique = true)
+  private UUID publicId;
 
   @ManyToOne
   @JoinColumn(name = "startup_id", nullable = false)
@@ -83,7 +83,7 @@ public class JobPosting {
   @PrePersist
   public void prePersist() {
     if (this.publicId == null) {
-      this.publicId = UUID.randomUUID().toString();
+      this.publicId = UUID.randomUUID();
     }
 
     if (this.createdAt == null) {

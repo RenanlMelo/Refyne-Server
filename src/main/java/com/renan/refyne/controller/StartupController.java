@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/startups")
@@ -34,9 +35,9 @@ public class StartupController {
     return ResponseEntity.status(201).body(response);
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<StartupResponseDTO> getCandidateByCpf(@PathVariable Long id) {
-    StartupResponseDTO response = startupService.getStartupById(id);
+  @GetMapping("/{publicId}")
+  public ResponseEntity<StartupResponseDTO> getCandidateByCpf(@PathVariable UUID publicId) {
+    StartupResponseDTO response = startupService.getStartupByPublicId(publicId);
     return ResponseEntity.ok(response);
   }
 

@@ -1,16 +1,16 @@
 package com.renan.refyne.dto.jobPosting;
 
-import lombok.Builder;
 import lombok.Value;
+import lombok.AllArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Value
-@Builder
+@AllArgsConstructor
 public class JobPostingListDTO {
-    Integer jobPostingId;
-    String title;
-    String description;
-    String companyName;
+
+  UUID publicId;
+  String title;
+  String description;
+  String companyName;
 }

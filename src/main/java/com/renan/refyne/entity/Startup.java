@@ -30,11 +30,11 @@ public class Startup {
   private Long startupId;
 
   @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
-  private String publicId;
+  private UUID publicId;
 
   @PrePersist
   public void generatePublicId() {
-    this.publicId = UUID.randomUUID().toString();
+    this.publicId = UUID.randomUUID();
   }
 
   @OneToOne(fetch = FetchType.LAZY)
