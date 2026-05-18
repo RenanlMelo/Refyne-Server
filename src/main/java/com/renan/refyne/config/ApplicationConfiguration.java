@@ -1,7 +1,7 @@
 package com.renan.refyne.config;
 
 
-import com.renan.refyne.repository.UserRepository;
+import com.renan.refyne.features.user.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
