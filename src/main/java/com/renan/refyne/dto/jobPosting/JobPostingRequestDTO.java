@@ -6,6 +6,7 @@ import com.renan.refyne.enums.WorkModel;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class JobPostingRequestDTO {
@@ -13,6 +14,7 @@ public class JobPostingRequestDTO {
   private String title;
   private String description;
   private String requirements;
+  private List<Long> skillIds;
 
   private EmploymentType employmentType;
   private WorkModel workModel;

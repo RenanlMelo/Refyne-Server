@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class SkillSeed {
 
-  private String id;
+  private Long id;
 
   @JsonProperty("nome_exibicao")
   private String nomeExibicao;

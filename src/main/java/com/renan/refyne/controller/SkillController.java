@@ -21,8 +21,8 @@ public class SkillController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<SkillResponseDTO>> search(@RequestParam String q) {
-    return ResponseEntity.ok(service.searchSkills(q));
+  public ResponseEntity<List<SkillResponseDTO>> search(@RequestParam String input) {
+    return ResponseEntity.ok(service.searchSkills(input));
   }
 
   @GetMapping

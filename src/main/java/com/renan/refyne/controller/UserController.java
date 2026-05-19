@@ -1,13 +1,13 @@
 package com.renan.refyne.controller;
 
-import com.renan.refyne.dto.user.ForgotPasswordDTO;
-import com.renan.refyne.dto.user.ResetPasswordDTO;
-import com.renan.refyne.dto.user.UserRequestDTO;
-import com.renan.refyne.dto.user.UserResponseDTO;
+import com.renan.refyne.dto.user.*;
+import com.renan.refyne.entity.User;
 import com.renan.refyne.service.UserService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import com.renan.refyne.service.JwtService;
 
@@ -24,15 +24,22 @@ public class UserController {
     this.jwtService = jwtService;
   }
 
-  @PostMapping("/create")
-  public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
-    UserResponseDTO response = userService.createUser(dto);
+  @GetMapping("/me")
+  public ResponseEntity<UserResponseDTO> getMe(
+    @AuthenticationPrincipal User user
+  ) {
+    return ResponseEntity.ok(userService.getCurrentUser(user.getUserId()));
+  }
+
+  @PostMapping("/register")
+  public ResponseEntity<AuthResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
+    AuthResponseDTO response = userService.createUser(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PostMapping("/login")
-  public ResponseEntity<UserResponseDTO> authenticateUser(@RequestBody UserRequestDTO dto) {
-    UserResponseDTO response = userService.authenticateUser(dto);
+  public ResponseEntity<AuthResponseDTO> authenticateUser(@RequestBody UserRequestDTO dto) {
+    AuthResponseDTO response = userService.authenticateUser(dto);
     return ResponseEntity.ok(response);
   }
 

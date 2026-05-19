@@ -9,7 +9,7 @@ import java.util.List;
 @Builder
 public class SkillResponseDTO {
 
-  String id;
+  Long id;
   String nomeExibicao;
   String categoria;
   List<String> synonyms;

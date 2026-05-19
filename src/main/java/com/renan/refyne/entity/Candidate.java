@@ -5,17 +5,21 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @Entity
 @Table(
   name = "CANDIDATE",
   indexes = {
-    @Index(name = "idx_candidate_user", columnList = "user_id")
+    @Index(name = "idx_candidate_user", columnList = "user_id"),
+    @Index(name = "idx_candidate_public_id", columnList = "public_id")
   },
   uniqueConstraints = {
     @UniqueConstraint(columnNames = "user_id"),
-    @UniqueConstraint(columnNames = "cpf")
+    @UniqueConstraint(columnNames = "cpf"),
+    @UniqueConstraint(columnNames = "public_id")
   }
 )
 public class Candidate {
@@ -24,6 +28,14 @@ public class Candidate {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "candidate_id")
   private Long candidateId;
+
+  @Column(name = "public_id", nullable = false, updatable = false, unique = true, length = 36)
+  private UUID publicId;
+
+  @PrePersist
+  public void generatePublicId() {
+    this.publicId = UUID.randomUUID();
+  }
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)

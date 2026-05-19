@@ -14,8 +14,8 @@ import java.util.List;
 public class Skill {
 
   @Id
-  @Column(length = 10)
-  private String id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
   @Column(name = "nome_exibicao", nullable = false)
   private String nomeExibicao;

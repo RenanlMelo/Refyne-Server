@@ -1,58 +1,67 @@
 package com.renan.refyne.service;
 
+import com.renan.refyne.dto.jobPosting.JobPostingListDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingRequestDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingResponseDTO;
+import com.renan.refyne.dto.jobPosting.JobSuggestionDTO;
 import com.renan.refyne.entity.JobPosting;
+import com.renan.refyne.entity.Skill;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
-import com.renan.refyne.enums.JobStatus;
+import com.renan.refyne.enums.WorkModel;
 import com.renan.refyne.repository.JobPostingRepository;
+import com.renan.refyne.repository.SkillRepository;
 import com.renan.refyne.repository.StartupRepository;
+import com.renan.refyne.util.JobMapper;
+
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class JobPostingService {
 
   private final JobPostingRepository jobPostingRepository;
   private final StartupRepository startupRepository;
+  private final SkillRepository skillRepository;
 
-  public JobPostingService(JobPostingRepository jobPostingRepository,
-                           StartupRepository startupRepository) {
+  public JobPostingService(
+    JobPostingRepository jobPostingRepository,
+    StartupRepository startupRepository,
+    SkillRepository skillRepository
+  ) {
     this.jobPostingRepository = jobPostingRepository;
     this.startupRepository = startupRepository;
+    this.skillRepository = skillRepository;
   }
 
-  public JobPostingResponseDTO getById(Integer id) {
-    JobPosting job = jobPostingRepository.findById(id)
+  public List<JobPostingListDTO> getAll() {
+
+    return jobPostingRepository.findAllJobsDTO();
+  }
+
+  public JobPostingResponseDTO getByPublicId(UUID publicId) {
+
+    JobPosting job = jobPostingRepository.findByPublicId(publicId)
       .orElseThrow(() -> new RuntimeException("Job not found"));
 
     return toDTO(job);
   }
 
-  public List<JobPostingResponseDTO> getAll() {
-    return jobPostingRepository.findAll()
-      .stream()
-      .map(this::toDTO)
-      .collect(Collectors.toList());
-  }
-
   public List<JobPostingResponseDTO> getJobsByStartup(User user) {
 
     Startup startup = startupRepository.findByUser(user)
-      .orElseThrow(() -> new RuntimeException("Startup not found"));
+      .orElseThrow(() -> new RuntimeException("Startup not found for user"));
 
-    List<JobPosting> jobs =
-      jobPostingRepository.findByStartup_StartupId(startup.getStartupId());
-
-    return jobs.stream()
+    return jobPostingRepository
+      .findByStartupPublicId(startup.getPublicId())
+      .stream()
       .map(this::toDTO)
       .toList();
   }
 
-  public JobPostingResponseDTO create(JobPostingRequestDTO dto, User user) {
+  public JobPostingResponseDTO createJob(JobPostingRequestDTO dto, User user) {
 
     if (dto.getSalaryMin().compareTo(dto.getSalaryMax()) > 0) {
       throw new RuntimeException("Salary min cannot be greater than max");
@@ -70,22 +79,34 @@ public class JobPostingService {
       .orElseThrow(() -> new RuntimeException("User does not have a startup"));
 
     JobPosting job = new JobPosting();
-    job.setStartup(startup); // ✅ THIS IS THE KEY
+    job.setStartup(startup);
 
     job.setTitle(dto.getTitle());
     job.setDescription(dto.getDescription());
     job.setRequirements(dto.getRequirements());
     job.setEmploymentType(dto.getEmploymentType());
     job.setWorkModel(dto.getWorkModel());
+
     job.setCity(dto.getCity());
     job.setState(dto.getState());
     job.setCountry(dto.getCountry());
+
     job.setSalaryMin(dto.getSalaryMin());
     job.setSalaryMax(dto.getSalaryMax());
+    job.setEquityMin(dto.getEquityMin());
+    job.setEquityMax(dto.getEquityMax());
 
-    jobPostingRepository.save(job);
+    List<Skill> skills = skillRepository.findAllById(dto.getSkillIds());
 
-    return toDTO(job);
+    if (skills.size() != dto.getSkillIds().size()) {
+      throw new RuntimeException("Some skills not found");
+    }
+
+    job.setSkills(skills);
+
+    JobPosting saved = jobPostingRepository.save(job);
+
+    return toDTO(saved);
   }
 
   public JobPostingResponseDTO update(Integer id, JobPostingRequestDTO dto) {
@@ -111,24 +132,81 @@ public class JobPostingService {
       job.setStatus(dto.getStatus());
     }
 
-    JobPosting updated = jobPostingRepository.save(job);
-
-    return toDTO(updated);
+    return toDTO(jobPostingRepository.save(job));
   }
 
   public void delete(Integer id) {
     jobPostingRepository.deleteById(id);
   }
 
+  public Page<JobPostingResponseDTO> searchJobs(
+    String query,
+    WorkModel workModel,
+    Double equityMin,
+    Double equityMax,
+    int page,
+    int size
+  ) {
+
+    Pageable pageable = PageRequest.of(
+      page,
+      size,
+      Sort.by("createdAt").descending()
+    );
+
+    return jobPostingRepository.searchJobs(
+        query,
+        workModel,
+        equityMin,
+        equityMax,
+        pageable
+      )
+      .map(this::toDTO);
+  }
+
+  public List<JobSuggestionDTO> getSuggestions(
+    String q,
+    WorkModel workModel,
+    Double equityMin,
+    Double equityMax
+  ) {
+    Pageable limit = PageRequest.of(0, 5);
+
+    return jobPostingRepository.findSuggestions(
+        q,
+        workModel,
+        equityMin,
+        equityMax,
+        limit
+      )
+      .stream()
+      .map(JobMapper::toSuggestionDTO)
+      .toList();
+  }
+
   private JobPostingResponseDTO toDTO(JobPosting job) {
+
+    List<String> skills = job.getSkills() == null
+      ? List.of()
+      : job.getSkills().stream()
+      .map(skill ->
+        skill.getNomeExibicao() != null
+          ? skill.getNomeExibicao()
+          : skill.getNomeNormalizado()
+      )
+      .toList();
+
     return JobPostingResponseDTO.builder()
-      .jobPostingId(job.getJobPostingId())
-      .startupId(job.getStartup().getStartupId())
+      .jobPostingId(job.getPublicId())
+
+      .startupId(job.getStartup().getPublicId())
       .startupName(job.getStartup().getCompanyName())
 
       .title(job.getTitle())
       .description(job.getDescription())
       .requirements(job.getRequirements())
+
+      .skills(skills)
 
       .employmentType(job.getEmploymentType())
       .workModel(job.getWorkModel())
@@ -139,6 +217,9 @@ public class JobPostingService {
 
       .salaryMin(job.getSalaryMin())
       .salaryMax(job.getSalaryMax())
+
+      .equityMin(job.getEquityMin())
+      .equityMax(job.getEquityMax())
 
       .jobStatus(job.getStatus())
       .createdAt(job.getCreatedAt())
