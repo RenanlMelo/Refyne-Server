@@ -12,4 +12,5 @@ public interface StartupRepository extends JpaRepository<Startup, Long> {
   boolean existsByUser(User user);
   Optional<Startup> findByUser(User user);
   Optional<Startup> findByPublicId(UUID publicId);
+  Optional<Startup> findByUser_UserId(Long userId);
 }

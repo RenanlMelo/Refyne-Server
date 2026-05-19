@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.renan.refyne.enums.UserType;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +23,12 @@ public class CandidateService {
 
   private final CandidateRepository candidateRepository;
   private final UserRepository userRepository;
+  private final FileUploadService fileUploadService;
 
-  public CandidateService(CandidateRepository candidateRepository, UserRepository userRepository) {
+  public CandidateService(CandidateRepository candidateRepository, UserRepository userRepository, FileUploadService fileUploadService) {
     this.candidateRepository = candidateRepository;
     this.userRepository = userRepository;
+    this.fileUploadService = fileUploadService;
   }
 
   public CandidateResponseDTO getCandidateById(Long id) {
@@ -42,7 +46,7 @@ public class CandidateService {
   }
 
   @Transactional
-  public CandidateResponseDTO createCandidateProfile(CandidateRequestDTO dto) {
+  public CandidateResponseDTO createCandidateProfile(CandidateRequestDTO dto, MultipartFile resume, String profilePhoto) {
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     User authUser  = (User) authentication.getPrincipal();
@@ -70,8 +74,19 @@ public class CandidateService {
     candidate.setCity(dto.getCity());
     candidate.setState(dto.getState());
     candidate.setCountry(dto.getCountry());
-    candidate.setProfilePhoto(dto.getProfilePhoto());
-    candidate.setResumeUrl(dto.getResumeUrl());
+    
+    candidate.setProfilePhoto(profilePhoto != null ? profilePhoto : dto.getProfilePhoto());
+    
+    String resumeUrl = dto.getResumeUrl();
+    if (resume != null && !resume.isEmpty()) {
+      try {
+        resumeUrl = fileUploadService.uploadCandidateResume(resume);
+      } catch (IOException e) {
+        throw new RuntimeException("Error uploading resume", e);
+      }
+    }
+    candidate.setResumeUrl(resumeUrl);
+    
     candidate.setLinkedinUrl(dto.getLinkedinUrl());
     candidate.setPortfolioUrl(dto.getPortfolioUrl());
     candidate.setGithubUrl(dto.getGithubUrl());

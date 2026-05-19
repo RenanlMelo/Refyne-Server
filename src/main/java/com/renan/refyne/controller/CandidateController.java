@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -24,12 +26,14 @@ public class CandidateController {
 
   @PostMapping("/create")
   public ResponseEntity<CandidateResponseDTO> createCandidate(
-    @Valid @RequestBody CandidateRequestDTO dto,
+    @Valid @RequestPart("data") CandidateRequestDTO dto,
+    @RequestPart(value = "resume", required = false) MultipartFile resume,
+    @RequestParam(value = "profilePhoto", required = false) String profilePhoto,
     Authentication authentication
   ) {
     User user = (User) authentication.getPrincipal();
 
-    CandidateResponseDTO response = candidateService.createCandidateProfile(dto);
+    CandidateResponseDTO response = candidateService.createCandidateProfile(dto, resume, profilePhoto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 

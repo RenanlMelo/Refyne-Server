@@ -31,7 +31,7 @@ public class UserController {
     return ResponseEntity.ok(userService.getCurrentUser(user.getUserId()));
   }
 
-  @PostMapping("/create")
+  @PostMapping("/register")
   public ResponseEntity<AuthResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
     AuthResponseDTO response = userService.createUser(dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
