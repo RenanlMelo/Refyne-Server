@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: refyne-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Render exposes the service on port 443 externally, but the container
+    # must listen on the port below (or $PORT if you use it dynamically).
+    # We use 8000 to match server.port in application.properties.
+    port: 8000
+    plan: free           # change to "starter" or "standard" when needed
+    region: oregon       # choose: oregon | frankfurt | singapore | ohio
+
+    envVars:
+      # ── Database (SQL Server hosted externally) ──────────────────────────
+      - key: DATABASE_USERNAME
+        sync: false          # fill in the Render dashboard
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        sync: false          # e.g. jdbc:sqlserver://<host>:1433;databaseName=refyne;...
+
+      # ── JWT ──────────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false
+
+      # ── Mail ─────────────────────────────────────────────────────────────
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+      # ── Cloudinary ───────────────────────────────────────────────────────
+      - key: CLOUDINARY_URL
+        sync: false

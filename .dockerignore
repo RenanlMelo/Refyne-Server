@@ -1,0 +1,24 @@
+# Maven build artifacts
+target/
+
+# IDE files
+.idea/
+*.iml
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitattributes
+
+# Env (never ship secrets into the image)
+.env
+*.env
+
+# Logs
+*.log
+logs/
