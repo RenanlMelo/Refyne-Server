@@ -1,5 +1,6 @@
 package com.renan.refyne.dto.jobPosting;
 
+import com.renan.refyne.enums.WorkModel;
 import lombok.Value;
 import lombok.AllArgsConstructor;
 
@@ -13,4 +14,6 @@ public class JobPostingListDTO {
   String title;
   String description;
   String companyName;
+  String stage;
+  WorkModel workModel;
 }

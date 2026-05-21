@@ -26,7 +26,9 @@ public interface JobPostingRepository extends JpaRepository<JobPosting, Integer>
     j.publicId,
     j.title,
     j.description,
-    s.companyName
+    s.companyName,
+    s.stage,
+    j.workModel
   )
   FROM JobPosting j
   JOIN j.startup s
@@ -40,14 +42,6 @@ public interface JobPostingRepository extends JpaRepository<JobPosting, Integer>
   WHERE j.publicId = :publicId
 """)
   Optional<JobPosting> findByPublicId(UUID publicId);
-
-  @Query("""
-        SELECT j.publicId, s.nomeExibicao
-        FROM JobPosting j
-        JOIN j.skills s
-        WHERE j.jobPostingId IN :ids
-    """)
-  List<Object[]> findSkillsByJobIds(@Param("ids") List<UUID> ids);
 
   @Query("""
         SELECT j FROM JobPosting j
