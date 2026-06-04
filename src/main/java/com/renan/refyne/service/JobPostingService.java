@@ -9,6 +9,7 @@ import com.renan.refyne.entity.Skill;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
+import com.renan.refyne.repository.ApplicationRepository;
 import com.renan.refyne.repository.JobPostingRepository;
 import com.renan.refyne.repository.SkillRepository;
 import com.renan.refyne.repository.StartupRepository;
@@ -25,15 +26,18 @@ public class JobPostingService {
   private final JobPostingRepository jobPostingRepository;
   private final StartupRepository startupRepository;
   private final SkillRepository skillRepository;
+  private final ApplicationRepository applicationRepository;
 
   public JobPostingService(
     JobPostingRepository jobPostingRepository,
     StartupRepository startupRepository,
-    SkillRepository skillRepository
+    SkillRepository skillRepository,
+    ApplicationRepository applicationRepository
   ) {
     this.jobPostingRepository = jobPostingRepository;
     this.startupRepository = startupRepository;
     this.skillRepository = skillRepository;
+    this.applicationRepository = applicationRepository;
   }
 
   public List<JobPostingListDTO> getAll() {
@@ -223,6 +227,7 @@ public class JobPostingService {
 
       .jobStatus(job.getStatus())
       .createdAt(job.getCreatedAt())
+      .applicationCount(applicationRepository.countByJobPublicId(job.getPublicId()))
       .build();
   }
 }

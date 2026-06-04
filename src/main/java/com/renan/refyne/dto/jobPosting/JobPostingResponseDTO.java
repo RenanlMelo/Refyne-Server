@@ -39,4 +39,5 @@ public class JobPostingResponseDTO {
 
   JobStatus jobStatus;
   LocalDateTime createdAt;
+  Long applicationCount;
 }

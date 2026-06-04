@@ -4,11 +4,15 @@ import com.renan.refyne.dto.application.CandidateApplicationDTO;
 import com.renan.refyne.dto.application.JobApplicationDetailDTO;
 import com.renan.refyne.entity.Application;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
+
+  @Query("SELECT COUNT(a) FROM Application a WHERE a.jobPosting.publicId = :jobPublicId")
+  Long countByJobPublicId(@Param("jobPublicId") UUID jobPublicId);
 
   @Query("""
   SELECT new com.renan.refyne.dto.application.JobApplicationDetailDTO(
@@ -27,7 +31,13 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
   
       c.city,
       c.state,
-      c.country
+      c.country,
+
+      c.linkedinUrl,
+      c.portfolioUrl,
+      c.githubUrl,
+      c.profilePhoto,
+      c.availabilityStatus
   )
   FROM Application a
   JOIN a.candidate c

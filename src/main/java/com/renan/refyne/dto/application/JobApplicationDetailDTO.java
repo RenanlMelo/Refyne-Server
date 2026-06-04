@@ -1,6 +1,7 @@
 package com.renan.refyne.dto.application;
 
 import com.renan.refyne.enums.ApplicationStatus;
+import com.renan.refyne.enums.AvailabilityStatus;
 import com.renan.refyne.enums.WorkModel;
 
 import java.time.LocalDateTime;
@@ -29,13 +30,20 @@ public record JobApplicationDetailDTO(
 
   WorkModel workModel,
 
-  List<String> skills
+  List<String> skills,
+
+  String linkedinUrl,
+  String portfolioUrl,
+  String githubUrl,
+  String profilePhoto,
+  AvailabilityStatus availabilityStatus
 
 ) {
+  /** Constructor used by JPQL projection (no phone, workModel, skills, or list fields) */
   public JobApplicationDetailDTO(
       UUID applicationId,
       ApplicationStatus status,
-      java.time.LocalDateTime appliedAt,
+      LocalDateTime appliedAt,
       String coverLetter,
       UUID candidateId,
       String fullName,
@@ -45,8 +53,15 @@ public record JobApplicationDetailDTO(
       String resumeUrl,
       String city,
       String state,
-      String country
+      String country,
+      String linkedinUrl,
+      String portfolioUrl,
+      String githubUrl,
+      String profilePhoto,
+      AvailabilityStatus availabilityStatus
   ) {
-      this(applicationId, status, appliedAt, coverLetter, candidateId, fullName, email, null, headline, bio, resumeUrl, city, state, country, null, null);
+      this(applicationId, status, appliedAt, coverLetter, candidateId, fullName, email,
+           null, headline, bio, resumeUrl, city, state, country, null, null,
+           linkedinUrl, portfolioUrl, githubUrl, profilePhoto, availabilityStatus);
   }
 }

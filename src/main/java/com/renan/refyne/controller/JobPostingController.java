@@ -8,6 +8,8 @@ import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
 import com.renan.refyne.service.JobPostingService;
+import com.renan.refyne.service.ApplicationService;
+import com.renan.refyne.dto.application.JobApplicationDetailDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,9 +23,11 @@ import java.util.UUID;
 public class JobPostingController {
 
   private final JobPostingService service;
+  private final ApplicationService applicationService;
 
-  public JobPostingController(JobPostingService service) {
+  public JobPostingController(JobPostingService service, ApplicationService applicationService) {
     this.service = service;
+    this.applicationService = applicationService;
   }
 
   // CREATE
@@ -80,5 +84,16 @@ public class JobPostingController {
     @PathVariable UUID publicId
   ) {
     return ResponseEntity.ok(service.getByPublicId(publicId));
+  }
+
+  // NEW ENDPOINT: Get candidate details for a job posting
+  @GetMapping("/{publicId}/candidates")
+  public ResponseEntity<List<JobApplicationDetailDTO>> getCandidatesForJob(
+    @PathVariable UUID publicId,
+    @AuthenticationPrincipal User user
+  ) {
+    // Verify startup ownership and retrieve candidate applications
+    List<JobApplicationDetailDTO> candidates = applicationService.getApplicationsByJob(publicId, user);
+    return ResponseEntity.ok(candidates);
   }
 }
