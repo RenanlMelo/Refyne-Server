@@ -16,7 +16,7 @@ public class JobMapper {
 
   public static JobPostingResponseDTO toDTO(JobPosting job) {
     return JobPostingResponseDTO.builder()
-      .jobPostingId(job.getPublicId())
+      .publicId(job.getPublicId())
       .title(job.getTitle())
       .description(job.getDescription())
       .startupName(job.getStartup().getCompanyName())

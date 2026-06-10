@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 public class JobPostingResponseDTO {
 
-  UUID jobPostingId;
+  UUID publicId;
   UUID startupId;
   String startupName;
 
@@ -39,4 +39,6 @@ public class JobPostingResponseDTO {
 
   JobStatus jobStatus;
   LocalDateTime createdAt;
+
+  Long candidateCount;
 }

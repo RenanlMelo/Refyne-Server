@@ -5,11 +5,15 @@ import com.renan.refyne.enums.AvailabilityStatus;
 import lombok.Builder;
 import lombok.Value;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 @Value
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CandidateResponseDTO {
 
   String fullName;
+  String email;
   String headline;
   String bio;
   String city;

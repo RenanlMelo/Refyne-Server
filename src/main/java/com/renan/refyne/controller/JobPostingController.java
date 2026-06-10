@@ -4,11 +4,16 @@ import com.renan.refyne.dto.jobPosting.JobPostingListDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingRequestDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingResponseDTO;
 import com.renan.refyne.dto.jobPosting.JobSuggestionDTO;
+import com.renan.refyne.dto.candidate.CandidateResponseDTO;
+import com.renan.refyne.dto.global.PaginatedResponseDTO;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
 import com.renan.refyne.service.JobPostingService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +41,9 @@ public class JobPostingController {
   }
   // GET ALL
   @GetMapping
-    public ResponseEntity<List<JobPostingListDTO>> getAll() {
-        return ResponseEntity.ok(service.getAll());
-    }
+  public ResponseEntity<List<JobPostingListDTO>> getJobs() {
+    return ResponseEntity.ok(service.getAll());
+  }
 
   @GetMapping("/my-jobs")
   public ResponseEntity<List<JobPostingResponseDTO>> getMyJobs(
@@ -81,4 +86,25 @@ public class JobPostingController {
   ) {
     return ResponseEntity.ok(service.getByPublicId(publicId));
   }
+
+  @GetMapping("/{publicId}/candidates")
+  public ResponseEntity<PaginatedResponseDTO<CandidateResponseDTO>> getCandidates(
+    @PathVariable UUID publicId,
+    @PageableDefault(sort = "appliedAt", direction = Sort.Direction.DESC) Pageable pageable,
+    @AuthenticationPrincipal User user
+  ) {
+    return ResponseEntity.ok(service.getCandidatesForJob(publicId, user, pageable));
+  }
+
+  @GetMapping("/{publicId}/test-candidates")
+  public ResponseEntity<PaginatedResponseDTO<CandidateResponseDTO>> testCandidates() {
+    PaginatedResponseDTO<CandidateResponseDTO> dto = PaginatedResponseDTO.<CandidateResponseDTO>builder()
+      .content(List.of())
+      .page(0)
+      .pageSize(10)
+      .totalElements(0)
+      .build();
+    return ResponseEntity.ok(dto);
+  }
 }
+                            

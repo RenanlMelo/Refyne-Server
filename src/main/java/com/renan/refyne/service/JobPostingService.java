@@ -9,10 +9,18 @@ import com.renan.refyne.entity.Skill;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
+import com.renan.refyne.repository.ApplicationRepository;
 import com.renan.refyne.repository.JobPostingRepository;
 import com.renan.refyne.repository.SkillRepository;
 import com.renan.refyne.repository.StartupRepository;
 import com.renan.refyne.util.JobMapper;
+import com.renan.refyne.util.CandidateMapper;
+import com.renan.refyne.dto.candidate.CandidateResponseDTO;
+import com.renan.refyne.dto.global.PaginatedResponseDTO;
+import com.renan.refyne.entity.Candidate;
+import com.renan.refyne.entity.Application;
+import com.renan.refyne.exception.global.ResourceNotFoundException;
+import com.renan.refyne.exception.global.ForbiddenAccessException;
 
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -25,15 +33,18 @@ public class JobPostingService {
   private final JobPostingRepository jobPostingRepository;
   private final StartupRepository startupRepository;
   private final SkillRepository skillRepository;
+  private final ApplicationRepository applicationRepository;
 
   public JobPostingService(
     JobPostingRepository jobPostingRepository,
     StartupRepository startupRepository,
-    SkillRepository skillRepository
+    SkillRepository skillRepository,
+    ApplicationRepository applicationRepository
   ) {
     this.jobPostingRepository = jobPostingRepository;
     this.startupRepository = startupRepository;
     this.skillRepository = skillRepository;
+    this.applicationRepository = applicationRepository;
   }
 
   public List<JobPostingListDTO> getAll() {
@@ -184,6 +195,36 @@ public class JobPostingService {
       .toList();
   }
 
+  public PaginatedResponseDTO<CandidateResponseDTO> getCandidatesForJob(
+    UUID jobPublicId,
+    User user,
+    Pageable pageable
+  ) {
+    JobPosting job = jobPostingRepository.findByPublicId(jobPublicId)
+      .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
+
+    Startup startup = startupRepository.findByUser(user)
+      .orElseThrow(() -> new ForbiddenAccessException("User does not have a startup"));
+
+    if (!job.getStartup().getStartupId().equals(startup.getStartupId())) {
+      throw new ForbiddenAccessException("You are not authorized to view candidates for this job");
+    }
+
+    Page<Application> applicationPage = applicationRepository.findApplicationsByJobPostingPublicId(jobPublicId, pageable);
+
+    List<CandidateResponseDTO> candidateDTOs = applicationPage.getContent().stream()
+      .map(Application::getCandidate)
+      .map(CandidateMapper::toPartialCandidateDTO)
+      .toList();
+
+    return PaginatedResponseDTO.<CandidateResponseDTO>builder()
+      .content(candidateDTOs)
+      .page(applicationPage.getNumber())
+      .pageSize(applicationPage.getSize())
+      .totalElements(applicationPage.getTotalElements())
+      .build();
+  }
+
   private JobPostingResponseDTO toDTO(JobPosting job) {
 
     List<String> skills = job.getSkills() == null
@@ -197,7 +238,7 @@ public class JobPostingService {
       .toList();
 
     return JobPostingResponseDTO.builder()
-      .jobPostingId(job.getPublicId())
+      .publicId(job.getPublicId())
 
       .startupId(job.getStartup().getPublicId())
       .startupName(job.getStartup().getCompanyName())
@@ -223,6 +264,7 @@ public class JobPostingService {
 
       .jobStatus(job.getStatus())
       .createdAt(job.getCreatedAt())
+      .candidateCount(applicationRepository.countByJobPosting_PublicId(job.getPublicId()))
       .build();
   }
 }

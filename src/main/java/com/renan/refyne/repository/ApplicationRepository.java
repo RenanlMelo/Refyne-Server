@@ -55,4 +55,12 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
   List<CandidateApplicationDTO> findApplicationsByCandidate(UUID candidatePublicId);
 
   boolean existsByJobPosting_PublicIdAndCandidate_PublicId(UUID jobPublicId, UUID candidatePublicId);
+
+  long countByJobPosting_PublicId(UUID jobPublicId);
+
+  @Query(
+    value = "SELECT a FROM Application a JOIN FETCH a.candidate c JOIN FETCH c.user u WHERE a.jobPosting.publicId = :publicId",
+    countQuery = "SELECT count(a) FROM Application a WHERE a.jobPosting.publicId = :publicId"
+  )
+  org.springframework.data.domain.Page<com.renan.refyne.entity.Application> findApplicationsByJobPostingPublicId(UUID publicId, org.springframework.data.domain.Pageable pageable);
 }
