@@ -44,4 +44,26 @@ public class GlobalExceptionHandler {
         "message", ex.getMessage()
       ));
   }
+
+  // JOB NOT FOUND HANDLER
+  @ExceptionHandler(JobNotFoundException.class)
+  public ResponseEntity<Object> handleJobNotFound(JobNotFoundException ex) {
+    return ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
+      .body(Map.of(
+        "error", "JOB_NOT_FOUND",
+        "message", ex.getMessage()
+      ));
+  }
+
+  // UNAUTHORIZED ACCESS HANDLER
+  @ExceptionHandler(UnauthorizedAccessException.class)
+  public ResponseEntity<Object> handleUnauthorizedAccess(UnauthorizedAccessException ex) {
+    return ResponseEntity
+      .status(HttpStatus.FORBIDDEN)
+      .body(Map.of(
+        "error", "UNAUTHORIZED",
+        "message", ex.getMessage()
+      ));
+  }
 }

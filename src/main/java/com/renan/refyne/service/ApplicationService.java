@@ -3,22 +3,27 @@ package com.renan.refyne.service;
 import com.renan.refyne.dto.application.ApplyRequestDTO;
 import com.renan.refyne.dto.application.CandidateApplicationDTO;
 import com.renan.refyne.dto.application.JobApplicationDetailDTO;
+import com.renan.refyne.dto.candidate.JobCandidateResponseDTO;
+import com.renan.refyne.dto.candidate.PaginatedCandidateResponseDTO;
+import com.renan.refyne.entity.Application;
+import com.renan.refyne.entity.Candidate;
 import com.renan.refyne.entity.JobPosting;
 import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
+import com.renan.refyne.exception.global.JobNotFoundException;
+import com.renan.refyne.exception.global.UnauthorizedAccessException;
 import com.renan.refyne.repository.ApplicationRepository;
+import com.renan.refyne.repository.CandidateRepository;
 import com.renan.refyne.repository.JobPostingRepository;
 import com.renan.refyne.repository.StartupRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-
-import com.renan.refyne.entity.Candidate;
-import com.renan.refyne.repository.CandidateRepository;
-import com.renan.refyne.entity.Application;
-import org.springframework.web.multipart.MultipartFile;
-import java.io.IOException;
 
 @Service
 public class ApplicationService {
@@ -43,32 +48,14 @@ public class ApplicationService {
     this.fileUploadService = fileUploadService;
   }
 
-  public List<JobApplicationDetailDTO> getApplicationsByJob(
-    UUID jobPublicId,
-    User user
-  ) {
-
-    Startup startup = startupRepository.findByUser_UserId(user.getUserId())
-      .orElseThrow(() ->
-        new RuntimeException("Startup not found")
-      );
-
-    JobPosting job = jobPostingRepository.findByPublicId(jobPublicId)
-      .orElseThrow(() ->
-        new RuntimeException("Job not found")
-      );
-
-    if (!job.getStartup().getStartupId().equals(startup.getStartupId())) {
-      throw new RuntimeException("You do not own this job posting");
-    }
-
+  public List<JobApplicationDetailDTO> getApplicationsByJob(UUID jobPublicId, User user) {
+    assertStartupOwnsJob(user, jobPublicId);
     return applicationRepository.findApplicationsByJob(jobPublicId);
   }
 
   public List<CandidateApplicationDTO> getMyApplications(User user) {
     Candidate candidate = candidateRepository.findByUser_UserId(user.getUserId())
       .orElseThrow(() -> new RuntimeException("Candidate not found"));
-
     return applicationRepository.findApplicationsByCandidate(candidate.getPublicId());
   }
 
@@ -104,5 +91,41 @@ public class ApplicationService {
       .build();
 
     return applicationRepository.save(application);
+  }
+
+  public PaginatedCandidateResponseDTO getCandidatesByJob(UUID jobPublicId, User user, Pageable pageable) {
+    assertStartupOwnsJob(user, jobPublicId);
+
+    Page<JobCandidateResponseDTO> result =
+      applicationRepository.findCandidatesByJobPublicId(jobPublicId, pageable);
+
+    return PaginatedCandidateResponseDTO.builder()
+      .candidates(result.getContent())
+      .page(result.getNumber())
+      .pageSize(result.getSize())
+      .totalElements(result.getTotalElements())
+      .build();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Verifies that the authenticated {@code user} is a startup owner and that
+   * the startup owns the job identified by {@code jobPublicId}.
+   * Throws {@link UnauthorizedAccessException} or {@link JobNotFoundException}
+   * on any violation.
+   */
+  private void assertStartupOwnsJob(User user, UUID jobPublicId) {
+    Startup startup = startupRepository.findByUser_UserId(user.getUserId())
+      .orElseThrow(() -> new UnauthorizedAccessException("User does not have a startup profile"));
+
+    JobPosting job = jobPostingRepository.findByPublicId(jobPublicId)
+      .orElseThrow(JobNotFoundException::new);
+
+    if (!job.getStartup().getStartupId().equals(startup.getStartupId())) {
+      throw new UnauthorizedAccessException("You do not own this job posting");
+    }
   }
 }

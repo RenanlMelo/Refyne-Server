@@ -2,8 +2,12 @@ package com.renan.refyne.repository;
 
 import com.renan.refyne.dto.application.CandidateApplicationDTO;
 import com.renan.refyne.dto.application.JobApplicationDetailDTO;
+import com.renan.refyne.dto.candidate.JobCandidateResponseDTO;
 import com.renan.refyne.entity.Application;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.UUID;
@@ -55,4 +59,28 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
   List<CandidateApplicationDTO> findApplicationsByCandidate(UUID candidatePublicId);
 
   boolean existsByJobPosting_PublicIdAndCandidate_PublicId(UUID jobPublicId, UUID candidatePublicId);
+
+  @Query("""
+  SELECT new com.renan.refyne.dto.candidate.JobCandidateResponseDTO(
+      c.fullName,
+      u.email,
+      c.city,
+      c.state,
+      c.country,
+      c.resumeUrl,
+      c.linkedinUrl,
+      c.portfolioUrl,
+      c.githubUrl,
+      c.availabilityStatus
+  )
+  FROM Application a
+  JOIN a.candidate c
+  JOIN c.user u
+  WHERE a.jobPosting.publicId = :jobPublicId
+  """)
+  Page<JobCandidateResponseDTO> findCandidatesByJobPublicId(
+    @Param("jobPublicId") UUID jobPublicId,
+    Pageable pageable
+  );
 }
+

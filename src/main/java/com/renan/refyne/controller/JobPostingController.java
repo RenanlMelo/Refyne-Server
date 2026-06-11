@@ -1,14 +1,17 @@
 package com.renan.refyne.controller;
 
+import com.renan.refyne.dto.candidate.PaginatedCandidateResponseDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingListDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingRequestDTO;
 import com.renan.refyne.dto.jobPosting.JobPostingResponseDTO;
 import com.renan.refyne.dto.jobPosting.JobSuggestionDTO;
-import com.renan.refyne.entity.Startup;
 import com.renan.refyne.entity.User;
 import com.renan.refyne.enums.WorkModel;
+import com.renan.refyne.service.ApplicationService;
 import com.renan.refyne.service.JobPostingService;
+import com.renan.refyne.util.SortParser;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -21,9 +24,11 @@ import java.util.UUID;
 public class JobPostingController {
 
   private final JobPostingService service;
+  private final ApplicationService applicationService;
 
-  public JobPostingController(JobPostingService service) {
+  public JobPostingController(JobPostingService service, ApplicationService applicationService) {
     this.service = service;
+    this.applicationService = applicationService;
   }
 
   // CREATE
@@ -81,4 +86,19 @@ public class JobPostingController {
   ) {
     return ResponseEntity.ok(service.getByPublicId(publicId));
   }
+
+  @GetMapping("/{publicId}/candidates")
+  public ResponseEntity<PaginatedCandidateResponseDTO> getCandidatesByJob(
+    @PathVariable UUID publicId,
+    @RequestParam(defaultValue = "0") int page,
+    @RequestParam(defaultValue = "10") int size,
+    @RequestParam(required = false) String sort,
+    @AuthenticationPrincipal User user
+  ) {
+    Pageable pageable = SortParser.toPageable(page, size, sort);
+    return ResponseEntity.ok(
+      applicationService.getCandidatesByJob(publicId, user, pageable)
+    );
+  }
 }
+
